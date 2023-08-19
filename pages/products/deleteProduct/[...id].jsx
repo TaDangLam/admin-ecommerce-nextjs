@@ -8,7 +8,7 @@ const DeleteProduct = () => {
   const [productInfo, setProductInfo] = useState(null);
   const router = useRouter();
   const { id } = router.query;
-  const GoBacPageProduct = () => {
+  const GoBackPageProduct = () => {
     router.push("/products");
   };
 
@@ -16,16 +16,19 @@ const DeleteProduct = () => {
     if (!id) {
       return;
     }
+    // Lấy thông tin sản phẩm
     axios.get("/api/products?id=" + id).then((response) => {
       setProductInfo(response.data);
+      // console.log(response)
   });
   }, [id]);
 
-  const DeleteProduct = async(ev) => {
+  const DeleteProducts = async(ev) => {
     ev.preventDefault();
+    // Xóa Từ MongoDB
     await axios.delete("/api/products?id="+id).then(() => {
       router.push('/products');
-    })
+    });
   }
 
   return (
@@ -36,13 +39,13 @@ const DeleteProduct = () => {
       <div className="flex gap-2 justify-center">
         <button
           className="bg-red-600 text-white rounded-md px-4 py-2 hover:bg-red-400"
-          onClick={DeleteProduct}
+          onClick={DeleteProducts}
         >
           Yes
         </button>
         <button
           className="bg-gray-600 text-white rounded-md px-4 py-2 hover:bg-gray-400"
-          onClick={GoBacPageProduct}
+          onClick={GoBackPageProduct}
         >
           NO
         </button>
