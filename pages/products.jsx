@@ -25,7 +25,7 @@ const Products = () => {
                 <tbody>
                     {dataProduct.map(product => {
                         return (
-                          <tr>
+                          <tr key={product._id}>
                             <td>{product.title}</td>
                             <td>
                               <Link

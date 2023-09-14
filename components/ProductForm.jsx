@@ -2,24 +2,36 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import Spinner from "@/components/Spinner";
+
 const ProductForm = ({
     _id,
     images:existingImages,
     title:existingTitle,
     description:existingDescription,
     price:existingPrice,
+    categories: exisCategories,
 }) => {
     const [title, setTitle] = useState(existingTitle || "");
+    const [category, setCategory] = useState([]);
+    const [categories, setCategories] = useState(exisCategories || '');
     const [description, setDescription] = useState(existingDescription || "");
     const [images, setImages] = useState(existingImages || []);
     const [price, setPrice] = useState(existingPrice || "");
+    const [upload, setUpload] = useState(false);
     const router = useRouter();
 
     console.log(_id);
 
+    useEffect(() => {
+      axios.get("/api/categories").then(result => {
+        setCategory(result.data);
+      })
+    }, [])
+
     const saveProduct = async (ev) => {
       ev.preventDefault();
-      const data = { title, description, price, images};
+      const data = { title, description, price, images, categories };
       if (_id) {
         // Update
           await axios.put("/api/products", {...data,_id});
@@ -34,6 +46,7 @@ const ProductForm = ({
       const files = ev.target?.files;
       // console.log(files);
       if (files.length > 0) {
+        setUpload(true);
         const data = new FormData();
         for (const file of files) {
           data.append('file', file);
@@ -42,7 +55,8 @@ const ProductForm = ({
         const newImages = res.data.links
         setImages(oldImages => {
           return [...oldImages, ...newImages];
-        })
+        });
+        setUpload(false);
         console.log(res.data);
       }
       
@@ -59,7 +73,14 @@ const ProductForm = ({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <label>Photos</label>
+      <label>Category</label>
+      <select value={categories} onChange={ev => setCategories(ev.target.value)}>
+      <option value="">Uncategorized</option>
+        {category.map(cate => (
+          <option value={cate._id}>{cate.name}</option>
+        ))}
+      </select>
+      <div className="mt-2"><label>Photos</label></div>
       <div className="mb-2 flex flex-wrap gap-2">
         {/* map() cần return */}
         {!!images?.length && images.map(link => (
@@ -67,6 +88,11 @@ const ProductForm = ({
             <img src={link} alt="HinhAnh" className="rounded-lg"/>
           </div>
         ))}
+        {upload && (
+          <div className="h-24 flex items-center">
+            <Spinner />
+          </div>
+        )}
         <label onChange={uploadFile} className="border w-24 h-24 text-center flex items-center justify-center rounded-lg bg-gray-200 cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -85,9 +111,6 @@ const ProductForm = ({
           <div>Upload</div>
           <input type="file" className="hidden" multiple/>
         </label>
-        {!images?.length && (
-          <div>No Photos in this product</div>
-        )}
       </div>
       <label>Description</label>
       <textarea
@@ -103,7 +126,7 @@ const ProductForm = ({
         value={price}
         onChange={(e) => setPrice(e.target.value)}
       />
-      <button type="submit" className="btn-primary">
+      <button type="submit" className="btn-primary mt-2">
         Save
       </button>
     </form>
